@@ -1,3 +1,13 @@
+## Start here
+
+If you are new to this project:
+
+1. Read: docs/memi_agi_core.md  
+2. Run:  python agi-core/memi_v110_FROZEN.py  
+3. Explore: governance/memi_live_demo_FROZEN.py  
+
+This repository documents a **verified decision architecture**, not a general AI system.
+
 # M.E.M.I. — Governed Intelligence Stack
 
 > *A system is not safe because it decides well.  
