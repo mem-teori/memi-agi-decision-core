@@ -27,6 +27,7 @@ This repository is made publicly available for **research, evaluation, and refer
 Use in production systems, commercial environments, or operational decision-making contexts requires a **separate license agreement**.
 
 The M.E.M.I. decision architecture and its extensions remain the intellectual property of Maria Edlenborg Mortensen.
+For licensing inquiries, contact: m.e.m.terori@gmail.com
 
 ---
 
