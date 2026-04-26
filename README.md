@@ -10,8 +10,10 @@ This repository documents a **verified decision architecture**, not a general AI
 
 # M.E.M.I. — Governed Intelligence Stack
 
-> *A system is not safe because it decides well.  
-> It is safe because it can refuse to decide.*
+ A system is not safe because it decides well.  
+ It is safe because it can refuse to decide.*
+ Most AI systems act under uncertainty.
+ This one evaluates whether it knows enough to act at all.
 
 M.E.M.I. (Maria Edlenborg Mortensen Intelligence) is a governance-native AI decision architecture designed for high-risk environments.
 
