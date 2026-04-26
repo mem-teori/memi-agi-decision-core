@@ -20,17 +20,8 @@ This one evaluates whether it knows enough to act at all.
 
 ---
 
-## License
+## What this is
 
-This repository is made publicly available for **research, evaluation, and reference purposes only**.
-
-Use in production systems, commercial environments, or operational decision-making contexts requires a **separate license agreement**.
-
-The M.E.M.I. decision architecture and its extensions remain the intellectual property of Maria Edlenborg Mortensen.
-For licensing inquiries, contact: m.e.m.terori@gmail.com
-
----
-
-M.E.M.I. (Maria Edlenborg Mortensen Intelligence) is a governance-native AI decision architecture designed for high-risk environments.
+M.E.M.I. (Maria Edlenborg Mortensen Intelligence) is a governance-native decision architecture designed for high-risk environments.
 
 It separates two things most AI systems conflate:
