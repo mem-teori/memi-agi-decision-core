@@ -1,62 +1,54 @@
-# M.E.M.I. — Governed Intelligence Stack
+M.E.M.I. — Governed Intelligence Stack
 
-> *A system is not safe because it decides well.  
-> It is safe because it can refuse to decide.*
+A system is not safe because it decides well.
+It is safe because it can refuse to decide.
 
-M.E.M.I. (Maria Edlenborg Mortensen Intelligence) is a governance-native AI decision architecture designed for high-risk environments.
+M.E.M.I. (Meaning — Epistemic — Method Intelligence) is a governance-native decision architecture derived from the M.E.M. theoretical framework (Meaning — Experience — Model).
+
+It translates the core principles of M.E.M. — relational fields, resonance, tension, and meaning as an emergent property — into a practical decision system for high-risk environments.
 
 It separates two things most AI systems conflate:
-
 
 Risk = what could go wrong
 Authority = whether the system is permitted to act on it
 
-
-The system does not act because it can.  
+The system does not act because it can.
 It acts when it understands what it is doing and has been permitted to do it.
 
-**M.E.M.I. is not classical machine learning.**  
-It is an **adaptive decision architecture under epistemic governance**.
+What this is not
 
----
+M.E.M.I. is not classical machine learning.
 
-## Start here
+What this is
+
+M.E.M.I. is an adaptive decision architecture under epistemic governance.
+
+Start here
 
 If you are new to this project:
 
-1. Read: `docs/memi_agi_core.md`  
-2. Run: `python agi-core/memi_v123_FROZEN.py`  
-3. Explore: `python governance/memi_live_demo_FROZEN.py`  
+Read: docs/memi_agi_core.md
+Run: python agi-core/memi_v123_FROZEN.py
+Explore: python governance/memi_live_demo_FROZEN.py
 
-This repository documents a **verified decision architecture**, not a general AI system.
+This repository documents a verified decision architecture, not a general AI system.
 
----
-
-## Repository structure
-
-
-docs/ Architecture papers and overviews
-governance/ Core governance engine (v8.5 → v9.2)
-agi-core/ AGI decision core (v10.7 → v12.3)
-deployment/ ETOS-AD bridge + live dashboard
-
-
----
-
-## Governance stack (v8.5 → v9.2)
-
-| File | Description |
-|------|------------|
-| `governance/memi_v85.py` | Authority Cache / Fast-Lane Gate |
-| `governance/memi_v90.py` | Governed Multi-Step Planning |
-| `governance/memi_v91_FROZEN.py` | LLM Plan Proposal Interface |
-| `governance/memi_v92_FROZEN.py` | ClaudeLLMAdapter |
-| `governance/memi_demo.py` | Canonical cases |
-| `governance/memi_live_demo_FROZEN.py` | Interactive demo |
+Repository structure
+docs/         Architecture papers and overviews
+governance/   Core governance engine (v8.5 → v9.2)
+agi-core/     AGI decision core (v10.7 → v12.3)
+deployment/   ETOS-AD bridge + live dashboard
+Governance stack (v8.5 → v9.2)
+File	Description
+governance/memi_v85.py	Authority Cache / Fast-Lane Gate
+governance/memi_v90.py	Governed Multi-Step Planning
+governance/memi_v91_FROZEN.py	LLM Plan Proposal Interface
+governance/memi_v92_FROZEN.py	ClaudeLLMAdapter
+governance/memi_demo.py	Canonical cases
+governance/memi_live_demo_FROZEN.py	Interactive demo
 
 Run:
 
-```bash
 python governance/memi_live_demo_FROZEN.py
 AGI decision core (v10.7 → v12.3)
 Reading order
@@ -136,7 +128,7 @@ This repository is made publicly available for research, evaluation, and referen
 
 Use in production systems, commercial environments, or operational decision-making contexts requires a separate license agreement.
 
-The M.E.M.I. decision architecture, including all components in this repository, remains the intellectual property of Maria Edlenborg Mortensen.
+The M.E.M.I. decision architecture, derived from the M.E.M. theoretical framework, remains the intellectual property of the author.
 
 Commercial licensing inquiries:
 
